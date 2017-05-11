@@ -60,7 +60,6 @@ class Config {
      */
     const app_client_access_number_of_attempts_before_definitely_ban = 1000;
     const app_client_access_time_between_new_try = 1800; //In seconds
-    const app_client_access_ip_array = array();
     const app_client_access_file_path = "yofba_data/ClientAccess.json";
 
 
@@ -74,7 +73,7 @@ class Config {
     /*
      * List of all Facebook fields you want to retrieve on album photos
      * See doc : 
-     * https://developers.facebook.com/docs/graph-api/reference/photo/
+     * https://developers.facebook.com/docs/graph-api/reference/photo
      */
     const app_list_of_fields_photos_album = array("id", "link", "name", "images", "likes");
     const app_count_facebook_likes = true;
