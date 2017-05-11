@@ -151,5 +151,5 @@ cd /xxx/xxx/subdomain/ && /usr/local/php7.0/bin/php -f yofba.php token=yourToken
 
 [url_demo_FacebookAlbum]:https://www.facebook.com/pg/Croozy-288111188298918/photos/?tab=album&album_id=288111494965554
 [url_demo_yofba]:https://demo.croozy.io/yofba/?token=MyPrivateToken
-[url_demo_galleryWithYofba]:https://demo.croozy.io/yofba_gallery_photoswipe?album-id=288111494965554
+[url_demo_galleryWithYofba]:https://demo.croozy.io/yofba/yofba_gallery_photoswipe?album-id=288111494965554
 [url_demo_yofbaJSON]:https://demo.croozy.io/yofba?getAlbum=288111494965554
