@@ -6,7 +6,7 @@
 * Facebook Album : [https://www.facebook.com/pg/Croozy-288111188298918/photos/?tab=album&album_id=288111494965554][url_demo_FacebookAlbum]
 * YOFBA : [https://demo.croozy.io/yofba/?token=MyPrivateToken][url_demo_yofba]
 * YOFBA's JSON : [https://demo.croozy.io/yofba?getAlbum=288111494965554][url_demo_yofbaJSON]
-* Photoswipe Gallery than use YOFBA : [https://demo.croozy.io/yofba_gallery_photoswipe?album-id=288111494965554][url_demo_galleryWithYofba]
+* Photoswipe Gallery than use YOFBA : [https://demo.croozy.io/yofba/yofba_gallery_photoswipe?album-id=288111494965554][url_demo_galleryWithYofba]
 
 <br/>
 
