@@ -1,13 +1,14 @@
 # YOFBA (Your Own Facebook Album)
 
+<br/>
+
 ## Demo
 * Facebook Album : [https://www.facebook.com/pg/Croozy-288111188298918/photos/?tab=album&album_id=288111494965554][url_demo_FacebookAlbum]
 * YOFBA : [https://demo.croozy.io/yofba/?token=MyPrivateToken][url_demo_yofba]
-* YOFBA's JSON : [https://demo.croozy.io/yofba?getAlbum=288111494965554] [url_demo_yofbaJSON]
-* Photoswipe Gallery than use YOFBA : [https://demo.croozy.io/yofba_gallery_photoswipe?album-id=288111494965554] [url_demo_galleryWithYofba]
+* YOFBA's JSON : [https://demo.croozy.io/yofba?getAlbum=288111494965554][url_demo_yofbaJSON]
+* Photoswipe Gallery than use YOFBA : [https://demo.croozy.io/yofba_gallery_photoswipe?album-id=288111494965554][url_demo_galleryWithYofba]
 
-
-
+<br/>
 
 ## His goal
 * Customization :
@@ -16,6 +17,8 @@
 * Optimisation : Create a cache (containing the JSON) to increase the response time.
 * Simplicity : For its implementation/configuration (This is why this project is in one file
 ).
+
+<br/>
 
 ## How it works ?
 
@@ -50,8 +53,12 @@ $.getJSON(urlToCall, function (data) {
 If your photo gallery and yofba.php are not on the same domain :  
 Make sure (in yofba.php) that the [CORS calls are allowed for your domain](#Config-property-app_allow_cors_request_from_url).
 
+<br/>
+<br/>
 
 ---
+
+<br/>
 
 ## <a id="configuration"></a>Configuration
 
@@ -127,6 +134,8 @@ The app_allow_cors_request_from_url property in yofba.php should look like this 
 ```php
 const app_allow_cors_request_from_url = array("https://photos.yourSite.com","https://www.photos.yourSite.com", "https://yourSite.com","https://www.yourSite.com");
 ```
+
+<br/>
 
 ## Optional
 ### CRON
