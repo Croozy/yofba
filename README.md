@@ -10,7 +10,7 @@
 
 <br/>
 
-## His goal
+## Features
 * Customization :
   * Allow to create a custom JSON feed based on Facebook albums.
   * Then, you can use this JSON feed to create a photo gallery. You can use all html/javascript photo galleries.
@@ -110,7 +110,7 @@ List of all the Facebook fields you want to retrieve for an album (doc : https:/
 List of all Facebook fields you want to retrieve on album photos (doc : https://developers.facebook.com/docs/graph-api/reference/photo)
 
 * app_count_facebook_likes :
-Count the numbers likes.
+Count the numbers of likes.
 
 * app_count_facebook_likes_field_name :
 Name of JSON field for likes counter.
