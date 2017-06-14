@@ -647,13 +647,13 @@ class ExceptionHandler {
         if (Config::app_debug_mode == true) {
 
             $message = "<div style='text-align: center;'>";
-            $message += "<h2 style='color: rgb(190, 50, 50);'>Exception Occured:</h2>";
-            $message += "<table style='width: 800px; display: inline-block;'>";
-            $message += "<tr style='background-color:rgb(230,230,230);'><th style='width: 80px;'>Type</th><td>" . get_class($e) . "</td></tr>";
-            $message += "<tr style='background-color:rgb(240,240,240);'><th>Message</th><td>{$e->getMessage()}</td></tr>";
-            $message += "<tr style='background-color:rgb(230,230,230);'><th>File</th><td>{$e->getFile()}</td></tr>";
-            $message += "<tr style='background-color:rgb(240,240,240);'><th>Line</th><td>{$e->getLine()}</td></tr>";
-            $message += "</table></div>";
+            $message .= "<h2 style='color: rgb(190, 50, 50);'>Exception Occured:</h2>";
+            $message .= "<table style='width: 800px; display: inline-block;'>";
+            $message .= "<tr style='background-color:rgb(230,230,230);'><th style='width: 80px;'>Type</th><td>" . get_class($e) . "</td></tr>";
+            $message .= "<tr style='background-color:rgb(240,240,240);'><th>Message</th><td>{$e->getMessage()}</td></tr>";
+            $message .= "<tr style='background-color:rgb(230,230,230);'><th>File</th><td>{$e->getFile()}</td></tr>";
+            $message .= "<tr style='background-color:rgb(240,240,240);'><th>Line</th><td>{$e->getLine()}</td></tr>";
+            $message .= "</table></div>";
 
             Tools::showMessage($message, MessageType::Debug);
         } else {
