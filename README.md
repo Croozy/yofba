@@ -143,6 +143,11 @@ Automate the update of JSONs
 #### Update all albums : cron.sh
 ```bash
 #!/bin/sh
+/usr/local/php7.1/bin/php /xxx/xxx/demo/yofba/index.php token=yourToken
+```
+Or
+```bash
+#!/bin/sh
 cd /xxx/xxx/subdomain/ && /usr/local/php7.0/bin/php -f yofba.php token=yourToken
 ```
 
