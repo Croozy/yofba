@@ -234,20 +234,24 @@ Class ClientAccess {
     private static function getClientAccessFile() {
 
         //Init file if not exist
-        if (!file_exists(Config::app_client_access_file_path)) {
+        if (!file_exists(self::getClientAccessFilePath())) {
             $obj = new stdClass();
             $obj->data = array();
-            file_put_contents(Config::app_client_access_file_path, json_encode($obj));
+            self::setClientAccessFile($obj);
         }
         //Read file
-        $app_access_check_up_ip_array = (array) json_decode(file_get_contents(Config::app_client_access_file_path), true);
+        $app_access_check_up_ip_array = (array) json_decode(file_get_contents(self::getClientAccessFilePath()), true);
 
 
         return $app_access_check_up_ip_array;
     }
 
     private static function setClientAccessFile($clientAccessFile) {
-        file_put_contents(Config::app_client_access_file_path, json_encode($clientAccessFile));
+        file_put_contents(self::getClientAccessFilePath(), json_encode($clientAccessFile));
+    }
+    
+    private static function getClientAccessFilePath(){
+        return Tools::getAbsoluteFilePath(Config::app_client_access_file_path);
     }
 
     private static function addClientAccessIfIpNotExist(&$clientAccessFile) {
@@ -421,7 +425,7 @@ class Album {
     }
 
     static function getAlbumPath($album_id) {
-        return str_replace("%album_id%", $album_id, Config::app_fb_json_albums_file_path);
+        return Tools::getAbsoluteFilePath(str_replace("%album_id%", $album_id, Config::app_fb_json_albums_file_path));
     }
 
     static function getAlbumOnFacebook($album_id) {
@@ -586,6 +590,10 @@ class Tools {
     private static function makeDir($dirPath, $mode) {
         return is_dir($dirPath) || mkdir($dirPath, $mode, true);
     }
+    
+    static function getAbsoluteFilePath($relativeFilePath){
+        return dirname(__FILE__).'/'.$relativeFilePath;
+    }
 
     static function createDirPathsIfTheyDoNotExist($dir_paths) {
         foreach ($dir_paths as $dirPath) {
@@ -657,9 +665,9 @@ class ExceptionHandler {
 
             Tools::showMessage($message, MessageType::Debug);
         } else {
-            if (!empty(Config::app_exception_file_path)) {
+            if (!empty(self::getExceptionFilePath())) {
                 $message = "Type: " . get_class($e) . "; Message: {$e->getMessage()}; File: {$e->getFile()}; Line: {$e->getLine()};";
-                file_put_contents(Config::app_exception_file_path, $message . PHP_EOL, FILE_APPEND);
+                file_put_contents(self::getExceptionFilePath(), $message . PHP_EOL, FILE_APPEND);
             }
         }
 
@@ -673,6 +681,10 @@ class ExceptionHandler {
         $error = error_get_last();
         if ($error["type"] == E_ERROR)
             self::log_error($error["type"], $error["message"], $error["file"], $error["line"]);
+    }
+    
+    private static function getExceptionFilePath(){
+        return Tools::getAbsoluteFilePath(Config::app_exception_file_path);
     }
 
 }
