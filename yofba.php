@@ -38,11 +38,19 @@ class Config {
     /* Customize
      * The ids and names of all albums are required
      */
-    const app_fb_albums_array = array(
-        0 => array("album" => array("id" => "11111111111", "name" => "Album 1", "description" => ""), "photos" => array("data" => "")),
-        1 => array("album" => array("id" => "22222222222", "name" => "Album 2", "description" => ""), "photos" => array("data" => "")),
-        2 => array("album" => array("id" => "33333333333", "name" => "Album 3", "description" => ""), "photos" => array("data" => "")),
-    );
+    const app_fb_albums_array =
+        array(
+            array(
+                "idPage"=>"111",
+                "namePage" => "Page 1",
+                "albums" => array(array("idAlbum" => "111111", "nameAlbum" => "Album 1 page 1"),array("idAlbum" => "111222", "nameAlbum" => "Album 2 page 1"))
+            ),
+            array(
+                "idPage"=>"222",
+                "namePage" => "Page 2",
+                "albums" => array(array("idAlbum" => "222111", "nameAlbum" => "Album 1 page 2"),array("idAlbum" => "222222", "nameAlbum" => "Album 2 page 2"))
+            )
+        );
     const app_debug_mode = false;
 
     /* Customize
@@ -110,6 +118,7 @@ class Session {
         $this->fb_token = Facebook::getToken();
         $this->client_ip = empty($_SERVER['REMOTE_ADDR']) ?: $_SERVER['REMOTE_ADDR'];
         $this->client_token = isset($_GET['token']) ? $_GET['token'] : null;
+        $this->client_page_id = isset($_GET['page_id']) && Album::getPageKeyInArray($_GET['page_id']) !== false ? $_GET['page_id'] : null;
         $this->client_album_id = isset($_GET['album_id']) && Album::getAlbumKeyInArray($_GET['album_id']) !== false ? $_GET['album_id'] : null;
         $this->client_get_album = isset($_GET['getAlbum']) ? $_GET['getAlbum'] : null;
         $this->php_output_message = "";
@@ -347,24 +356,44 @@ class Album {
 
     static function updateAlbums() {
         try {
-            $update_only_this_album = isset(Session::getInstance()->client_album_id) && self::getAlbumKeyInArray(Session::getInstance()->client_album_id) !== false ? self::getAlbumKeyInArray(Session::getInstance()->client_album_id) : false;
-            if ($update_only_this_album !== false) {
-                $album = Config::app_fb_albums_array[$update_only_this_album];
-                try {
-                    self::constructAndSaveJSONAlbum($album);
-                    Tools::showMessage('Update succeeded for album : ' . $album['album']['name'] . ' (id:' . $album['album']['id'] . ')', MessageType::Success);
-                } catch (Exception $ex) {
-                    Tools::showMessage('Update failed for album  : ' . $album['album']['name'] . ' (id:' . $album['album']['id'] . ')', MessageType::Danger);
-                    throw $ex;
-                }
-            } else {
-                foreach (Config::app_fb_albums_array as $album) {
+            $update_only_this_page = isset(Session::getInstance()->client_page_id) && self::getPageKeyInArray(Session::getInstance()->client_page_id) !== false ? self::getPageKeyInArray(Session::getInstance()->client_page_id) : false;
+            //If page id is filled
+            if($update_only_this_page !== false){
+                $page=Config::app_fb_albums_array[$update_only_this_page];
+                $update_only_this_album = isset(Session::getInstance()->client_album_id) && self::getAlbumKeyInArray(Session::getInstance()->client_album_id) !== false ? self::getAlbumKeyInArray(Session::getInstance()->client_album_id) : false;
+                //If page id and album id are filled
+                if ($update_only_this_album !== false) {
+                    $album = $page['albums'][$update_only_this_album];
                     try {
-                        self::constructAndSaveJSONAlbum($album);
-                        Tools::showMessage('Update succeeded for album : ' . $album['album']['name'] . ' (id:' . $album['album']['id'] . ')', MessageType::Success);
+                        self::constructAndSaveJSONAlbum($album['idAlbum']);
+                        self::successUpdate(true,$page['idPage'],$page['namePage'],$album['idAlbum'],$album['nameAlbum']);
                     } catch (Exception $ex) {
-                        Tools::showMessage('Update failed for album : ' . $album['album']['name'] . ' (id:' . $album['album']['id'] . ')', MessageType::Danger);
+                        self::successUpdate(false,$page['idPage'],$page['namePage'],$album['idAlbum'],$album['nameAlbum']);
                         throw $ex;
+                    }
+                }
+                else{
+                    foreach ($page['albums'] as $album) {
+                        try {
+                            self::constructAndSaveJSONAlbum($album['idAlbum']);
+                            self::successUpdate(true,$page['idPage'],$page['namePage'],$album['idAlbum'],$album['nameAlbum']);
+                        } catch (Exception $ex) {
+                            self::successUpdate(false,$page['idPage'],$page['namePage'],$album['idAlbum'],$album['nameAlbum']);
+                            throw $ex;
+                        } 
+                    }
+                }
+            }
+            else {
+                foreach (Config::app_fb_albums_array as $page) {
+                    foreach ($page['albums'] as $album) {
+                        try {
+                            self::constructAndSaveJSONAlbum($album['idAlbum']);
+                            self::successUpdate(true,$page['idPage'],$page['namePage'],$album['idAlbum'],$album['nameAlbum']);
+                        } catch (Exception $ex) {
+                            self::successUpdate(false,$page['idPage'],$page['namePage'],$album['idAlbum'],$album['nameAlbum']);
+                            throw $ex;
+                        }
                     }
                 }
             }
@@ -372,21 +401,42 @@ class Album {
             throw $ex;
         }
     }
+    
+    static function successUpdate($success, $pageId, $pageName, $albumId, $albumName){
+        if($success){
+            Tools::showMessage('Update succeeded :<br>- Page : '.$pageName.' (id:'.$pageId.')<br>- Album : ' .$albumName . ' (id:' . $albumId . ')', MessageType::Success);
+        }
+        else{
+            Tools::showMessage('Update failed :<br>- Page : '.$pageName.' (id:'.$pageId.')<br>- Album :' .$albumName . ' (id:' . $albumId . ')', MessageType::Danger);
+        }
+    }
 
     static function getAlbumKeyInArray($album_id) {
-        $array_key = array_search($album_id, array_column(array_column(Config::app_fb_albums_array, 'album'), 'id'));
+        $array_key = false;
+        foreach (Config::app_fb_albums_array as $page) {
+            $array_key = array_search($album_id, array_column($page['albums'], 'idAlbum'));
+            if($array_key!==false){
+                break;
+            }
+        }        
+        return $array_key;
+    }
+    
+    static function getPageKeyInArray($page_id) {
+        $array_key = array_search($page_id, array_column(Config::app_fb_albums_array, 'idPage'));
         return $array_key;
     }
 
-    static function constructAndSaveJSONAlbum($album) {
+    static function constructAndSaveJSONAlbum($album_id) {
         try {
-            $previous_album = json_decode(self::getAlbumAndPhotosLocally($album['album']['id']), true);
+            $album=[];
+            $previous_album = json_decode(self::getAlbumAndPhotosLocally($album_id), true);
             $previous_id_photos_main_color = !empty($previous_album) ? self::getIdPhotosWithMainColor($previous_album) : array();
             //Tools::showMessage('<h1>$previous_album</h1>' . json_encode($previous_album, JSON_HEX_APOS), MessageType::Debug);
             //Tools::showMessage('<h1>$previous_main_color</h1>' . json_encode($previous_id_photos_main_color, JSON_HEX_APOS), MessageType::Debug);
-            $album['album'] = json_decode(self::getAlbumOnFacebook($album['album']['id']), true);
+            $album['album'] = json_decode(self::getAlbumOnFacebook($album_id), true);
             //Tools::showMessage(json_encode($album['album'], JSON_HEX_APOS), MessageType::Debug);
-            $album['photos'] = json_decode(self::getAlbumPhotosOnFacebook($album['album']['id']), true);
+            $album['photos'] = json_decode(self::getAlbumPhotosOnFacebook($album_id), true);
             //Tools::showMessage(json_encode($album['photos'], JSON_HEX_APOS), MessageType::Debug);
 
             foreach ($album['photos']['data'] as &$photo) {
@@ -410,7 +460,7 @@ class Album {
                 }
             }
 
-            file_put_contents(self::getAlbumPath($album['album']['id']), json_encode($album));
+            file_put_contents(self::getAlbumPath($album_id), json_encode($album));
         } catch (Exception $ex) {
             throw $ex;
         }
@@ -895,7 +945,7 @@ if (!Session::getInstance()->is_json_output) {
                 }
 
                 .form-signin {
-                    max-width: 350px;
+                    max-width: 380px;
                     padding-top: 20px;
                     padding-right: 20px;
                     padding-bottom: 20px;
@@ -974,14 +1024,9 @@ if (!Session::getInstance()->is_json_output) {
                     <h2 class="title-form">Please fill the token</h2>
                     <label for="token" class="sr-only">Token</label>
                     <input type="text" id="token" name="token" required="" class="form-control" placeholder="Token" autofocus="" value="<?php echo Session::getInstance()->client_token; ?>">
+                    <select class="form-control" id="page_id" name="page_id" onchange="pageIdChanged();">
+                    </select>
                     <select class="form-control" id="album_id" name="album_id">
-                        <?php
-                        echo '<option value="">All albums</option>';
-                        foreach (Config::app_fb_albums_array as $album) {
-                            $selected = $album['album']['id'] == Session::getInstance()->client_album_id ? 'selected' : '';
-                            echo '<option value="' . $album['album']['id'] . '"' . $selected . '>' . $album['album']['name'] . '</option>';
-                        }
-                        ?>
                     </select>
                     <button class="btn btn-lg btn-primary btn-block" type="submit" onclick="document.getElementById('loader').style.display = 'block';">Submit</button>
 
@@ -996,6 +1041,60 @@ if (!Session::getInstance()->is_json_output) {
             <script>
                 if (debug) {
                     document.write('<?php echo Session::getInstance()->php_output_message; ?>');
+                }
+            </script>
+            <script>
+                var fbAlbums = <?php echo json_encode(Config::app_fb_albums_array);?>;
+                setSelectList("page_id",fbAlbums,"All Pages", "idPage","namePage","<?php echo Session::getInstance()->client_page_id; ?>");
+                setSelectList("album_id",getAlbumsOfPage("<?php echo Session::getInstance()->client_page_id; ?>"),"All Albums", "idAlbum","nameAlbum","<?php echo Session::getInstance()->client_album_id ?>");
+
+                
+                function setSelectList(idSelectList, array, defaultOptionText, optionValue, optionText, selectedValue){
+                    var selectList = document.getElementById(idSelectList);
+                    removeOptions(selectList);
+                    
+                    var defaultOption = document.createElement("option");
+                    defaultOption.value = "";
+                    defaultOption.text = defaultOptionText;
+                    selectList.appendChild(defaultOption);
+                        
+                    for (var i = 0; i < array.length; i++) {
+                        var option = document.createElement("option");
+                        option.value = array[i][optionValue];
+                        option.text = array[i][optionText];
+                        if(option.value === selectedValue){
+                            option.selected = true;
+                        }
+                        selectList.appendChild(option);
+                    }
+                }
+                
+                function removeOptions(selectbox)
+                {
+                    var i;
+                    for(i = selectbox.options.length - 1 ; i >= 0 ; i--)
+                    {
+                        selectbox.remove(i);
+                    }
+                }
+                
+                function pageIdChanged(){
+                    var selectListPage = document.getElementById("page_id");
+                    var pageId = selectListPage.options[selectListPage.selectedIndex].value;
+                    setSelectList("album_id",getAlbumsOfPage(pageId),"All Albums", "idAlbum","nameAlbum","<?php echo Session::getInstance()->client_album_id ?>");
+                }
+                
+                function getAlbumsOfPage(idPage){
+                    var albumsPage = [];
+                    //For all pages
+                    for (var i = 0; i < fbAlbums.length; i++) {
+                        if(idPage === "" || fbAlbums[i]["idPage"] === idPage){
+                            for (var i2 = 0; i2 < fbAlbums[i]["albums"].length; i2++) {
+                                albumsPage.push(fbAlbums[i]["albums"][i2]);
+                            }
+                        }
+                    }
+                    return albumsPage;
                 }
             </script>
         </body>
