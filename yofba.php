@@ -43,12 +43,12 @@ class Config {
             array(
                 "idPage"=>"111",
                 "namePage" => "Page 1",
-                "albums" => array(array("idAlbum" => "111111", "nameAlbum" => "Album 1 page 1"),array("idAlbum" => "111222", "nameAlbum" => "Album 2 page 1"))
+                "albums" => array(array("idAlbum" => "111111", "nameAlbum" => "Album 1 page 1"),array("idAlbum" => "111222", "nameAlbum" => "Album 2 page 1","maxPhotos"=>20))
             ),
             array(
                 "idPage"=>"222",
                 "namePage" => "Page 2",
-                "albums" => array(array("idAlbum" => "222111", "nameAlbum" => "Album 1 page 2"),array("idAlbum" => "222222", "nameAlbum" => "Album 2 page 2"))
+                "albums" => array(array("idAlbum" => "222111", "nameAlbum" => "Album 1 page 2","maxPhotos"=>105),array("idAlbum" => "222222", "nameAlbum" => "Album 2 page 2","maxPhotos"=>80))
             )
         );
     const app_debug_mode = false;
@@ -367,7 +367,7 @@ class Album {
                     $time_start=microtime(true);
                     $album = $page['albums'][$update_only_this_album];
                     try {
-                        self::constructAndSaveJSONAlbum($album['idAlbum']);
+                        self::constructAndSaveJSONAlbum($album['idAlbum'], array_key_exists('maxPhotos',$album) ? $album['maxPhotos'] : -1 );
                         self::successUpdate(true,$time_start,$page['idPage'],$page['namePage'],$album['idAlbum'],$album['nameAlbum']);
                     } catch (Exception $ex) {
                         self::successUpdate(false,$time_start,$page['idPage'],$page['namePage'],$album['idAlbum'],$album['nameAlbum']);
@@ -378,7 +378,7 @@ class Album {
                     foreach ($page['albums'] as $album) {
                         $time_start=microtime(true);
                         try {
-                            self::constructAndSaveJSONAlbum($album['idAlbum']);
+                            self::constructAndSaveJSONAlbum($album['idAlbum'], array_key_exists('maxPhotos',$album) ? $album['maxPhotos'] : -1 );
                             self::successUpdate(true,$time_start,$page['idPage'],$page['namePage'],$album['idAlbum'],$album['nameAlbum']);
                         } catch (Exception $ex) {
                             self::successUpdate(false,$time_start,$page['idPage'],$page['namePage'],$album['idAlbum'],$album['nameAlbum']);
@@ -392,7 +392,7 @@ class Album {
                     foreach ($page['albums'] as $album) {
                         $time_start=microtime(true);
                         try {
-                            self::constructAndSaveJSONAlbum($album['idAlbum']);
+                            self::constructAndSaveJSONAlbum($album['idAlbum'], array_key_exists('maxPhotos',$album) ? $album['maxPhotos'] : -1 );
                             self::successUpdate(true,$time_start,$page['idPage'],$page['namePage'],$album['idAlbum'],$album['nameAlbum']);
                         } catch (Exception $ex) {
                             self::successUpdate(false,$time_start,$page['idPage'],$page['namePage'],$album['idAlbum'],$album['nameAlbum']);
@@ -432,16 +432,16 @@ class Album {
         return $array_key;
     }
 
-    static function constructAndSaveJSONAlbum($album_id) {
+    static function constructAndSaveJSONAlbum($album_id, $album_max_photos) {
         try {
             $album=[];
             $previous_album = json_decode(self::getAlbumAndPhotosLocally($album_id), true);
             $previous_id_photos_main_color = !empty($previous_album) ? self::getIdPhotosWithMainColor($previous_album) : array();
             //Tools::showMessage('<h1>$previous_album</h1>' . json_encode($previous_album, JSON_HEX_APOS), MessageType::Debug);
             //Tools::showMessage('<h1>$previous_main_color</h1>' . json_encode($previous_id_photos_main_color, JSON_HEX_APOS), MessageType::Debug);
-            $album['album'] = json_decode(self::getAlbumOnFacebook($album_id), true);
+            $album['album'] = self::getAlbumOnFacebook($album_id);
             //Tools::showMessage(json_encode($album['album'], JSON_HEX_APOS), MessageType::Debug);
-            $album['photos'] = json_decode(self::getAlbumPhotosOnFacebook($album_id), true);
+            $album['photos'] = self::getAlbumPhotosOnFacebook($album_id, $album_max_photos);
             //Tools::showMessage(json_encode($album['photos'], JSON_HEX_APOS), MessageType::Debug);
 
             foreach ($album['photos']['data'] as &$photo) {
@@ -485,13 +485,49 @@ class Album {
 
     static function getAlbumOnFacebook($album_id) {
         $url = Facebook::getAlbumUrl($album_id);
-        $json = file_get_contents($url);
+        $json = json_decode(file_get_contents($url), true);
         return $json;
     }
 
-    static function getAlbumPhotosOnFacebook($album_id) {
-        $url = Facebook::getAlbumPhotosUrl($album_id);
-        $json = file_get_contents($url);
+    static function getAlbumPhotosOnFacebook($album_id, $album_max_photos) {
+       $load_all = $album_max_photos === -1;
+        $number_of_photos_loaded = 0;
+        $number_of_remaining_photos_to_load = $album_max_photos - $number_of_photos_loaded;
+        if($load_all){
+                $next_url_to_call = Facebook::getAlbumPhotosUrl($album_id,100);
+        }
+        else{
+                $next_url_to_call = Facebook::getAlbumPhotosUrl($album_id,$number_of_remaining_photos_to_load );
+        }
+        $json = "";
+        $json_current = "";
+        //Break 1 : When the defined maximum has been reached
+        while($number_of_remaining_photos_to_load !== 0){
+                //First time
+                if(empty($json)){
+                        $json = json_decode(file_get_contents($next_url_to_call), true);
+                }
+                else{
+                        $json_current = json_decode(file_get_contents($next_url_to_call), true);
+                        $json['data'] = array_merge($json['data'],$json_current['data']);
+                        $json['paging'] = array_key_exists('paging',$json_current) ? $json_current['paging'] : "";
+                }
+                $number_of_photos_loaded = count($json['data']);
+
+                //Break 2 : When there is no more photo to load
+                if(array_key_exists('paging',$json) && array_key_exists('next',$json['paging'])){
+                        $next_url_to_call = $json['paging']['next'];
+                        if(!$load_all){
+                                $number_of_remaining_photos_to_load = $album_max_photos - $number_of_photos_loaded;
+                                $next_url_to_call = preg_replace('/limit=\d*/','limit='.$number_of_remaining_photos_to_load,$next_url_to_call);
+                        }
+                }
+                else{
+                        break;
+                }
+        }
+        unset($json['paging']);
+		
         return $json;
     }
 

@@ -89,8 +89,8 @@ List of all albums facebook has recovered, ordered by page.
   <dd>Fill in the id and the name of the page. Use in UI drop-list.</dd>
 
   <dt>albums : list of all albums</dt>
-  <dt>idAlbum, nameAlbum</dt>
-  <dd>Fill in the id and the name (use in UI drop-list) of the album. To get the ID of an album, retrieve the "album_id" parameter from the [URL][url_demo_FacebookAlbum].</dd>
+  <dt>idAlbum, nameAlbum, maxPhotos</dt>
+  <dd>Fill in the id, the name (use in UI drop-list) of the album and number of photos to load (Without this parameter, the entire album is loaded). To get the ID of an album, retrieve the "album_id" parameter from the [URL][url_demo_FacebookAlbum].</dd>
 </dl>
 
 * app_debug_mode :
