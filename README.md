@@ -84,9 +84,14 @@ Location where the JSONs are stored
 
 * **app_fb_albums_array** :
 List of all albums facebook has recovered, ordered by page.
-* idPage, namePage : Fill in the id and the name of the page. Use in UI drop-list.
-* albums : list of all albums
-  * idAlbum, nameAlbum : Fill in the id and the name (use in UI drop-list) of the album. To get the ID of an album, retrieve the "album_id" parameter from the [URL][url_demo_FacebookAlbum].
+<dl>
+  <dt>idPage, namePage</dt>
+  <dd>Fill in the id and the name of the page. Use in UI drop-list.</dd>
+
+  <dt>albums : list of all albums</dt>
+  <dt>idAlbum, nameAlbum</dt>
+  <dd>Fill in the id and the name (use in UI drop-list) of the album. To get the ID of an album, retrieve the "album_id" parameter from the [URL][url_demo_FacebookAlbum].</dd>
+</dl>
 
 * app_debug_mode :
 If you want debug this app. Use Tools::showMessage(" ",MessageType::Debug) method.
