@@ -155,11 +155,12 @@ Class ProcessingRequest {
         if (isset(Session::getInstance()->client_token) && Session::getInstance()->client_token != "") {
             $isBan = ClientAccess::isAuthorised();
             if (!$isBan && Config::app_token == Session::getInstance()->client_token) {
+                $time_start=microtime(true);
                 try {
                     Album::updateAlbums();
-                    Tools::showMessage('Update succeeded ', MessageType::Success);
+                    Tools::showMessage('Update succeeded ('.strval(microtime(true)-$time_start).' sec)', MessageType::Success);
                 } catch (Exception $ex) {
-                    Tools::showMessage('Update failed', MessageType::Danger);
+                    Tools::showMessage('Update failed ('.strval(microtime(true)-$time_start).' sec)', MessageType::Danger);
                 }
             }
             //Don't show indice if ban
@@ -363,22 +364,24 @@ class Album {
                 $update_only_this_album = isset(Session::getInstance()->client_album_id) && self::getAlbumKeyInArray(Session::getInstance()->client_album_id) !== false ? self::getAlbumKeyInArray(Session::getInstance()->client_album_id) : false;
                 //If page id and album id are filled
                 if ($update_only_this_album !== false) {
+                    $time_start=microtime(true);
                     $album = $page['albums'][$update_only_this_album];
                     try {
                         self::constructAndSaveJSONAlbum($album['idAlbum']);
-                        self::successUpdate(true,$page['idPage'],$page['namePage'],$album['idAlbum'],$album['nameAlbum']);
+                        self::successUpdate(true,$time_start,$page['idPage'],$page['namePage'],$album['idAlbum'],$album['nameAlbum']);
                     } catch (Exception $ex) {
-                        self::successUpdate(false,$page['idPage'],$page['namePage'],$album['idAlbum'],$album['nameAlbum']);
+                        self::successUpdate(false,$time_start,$page['idPage'],$page['namePage'],$album['idAlbum'],$album['nameAlbum']);
                         throw $ex;
                     }
                 }
                 else{
                     foreach ($page['albums'] as $album) {
+                        $time_start=microtime(true);
                         try {
                             self::constructAndSaveJSONAlbum($album['idAlbum']);
-                            self::successUpdate(true,$page['idPage'],$page['namePage'],$album['idAlbum'],$album['nameAlbum']);
+                            self::successUpdate(true,$time_start,$page['idPage'],$page['namePage'],$album['idAlbum'],$album['nameAlbum']);
                         } catch (Exception $ex) {
-                            self::successUpdate(false,$page['idPage'],$page['namePage'],$album['idAlbum'],$album['nameAlbum']);
+                            self::successUpdate(false,$time_start,$page['idPage'],$page['namePage'],$album['idAlbum'],$album['nameAlbum']);
                             throw $ex;
                         } 
                     }
@@ -387,11 +390,12 @@ class Album {
             else {
                 foreach (Config::app_fb_albums_array as $page) {
                     foreach ($page['albums'] as $album) {
+                        $time_start=microtime(true);
                         try {
                             self::constructAndSaveJSONAlbum($album['idAlbum']);
-                            self::successUpdate(true,$page['idPage'],$page['namePage'],$album['idAlbum'],$album['nameAlbum']);
+                            self::successUpdate(true,$time_start,$page['idPage'],$page['namePage'],$album['idAlbum'],$album['nameAlbum']);
                         } catch (Exception $ex) {
-                            self::successUpdate(false,$page['idPage'],$page['namePage'],$album['idAlbum'],$album['nameAlbum']);
+                            self::successUpdate(false,$time_start,$page['idPage'],$page['namePage'],$album['idAlbum'],$album['nameAlbum']);
                             throw $ex;
                         }
                     }
@@ -402,12 +406,13 @@ class Album {
         }
     }
     
-    static function successUpdate($success, $pageId, $pageName, $albumId, $albumName){
+    static function successUpdate($success, $time_start, $page_id, $page_name, $album_id, $album_name){
+        $time=microtime(true)-$time_start;
         if($success){
-            Tools::showMessage('Update succeeded :<br>- Page : '.$pageName.' (id:'.$pageId.')<br>- Album : ' .$albumName . ' (id:' . $albumId . ')', MessageType::Success);
+            Tools::showMessage('Update succeeded ('.$time.' sec) :<br>- Page : '.$page_name.' (id:'.$page_id.')<br>- Album : ' .$album_name . ' (id:' . $album_id . ')', MessageType::Success);
         }
         else{
-            Tools::showMessage('Update failed :<br>- Page : '.$pageName.' (id:'.$pageId.')<br>- Album :' .$albumName . ' (id:' . $albumId . ')', MessageType::Danger);
+            Tools::showMessage('Update failed ('.$time.' sec) :<br>- Page : '.$page_name.' (id:'.$page_id.')<br>- Album :' .$album_name . ' (id:' . $album_id . ')', MessageType::Danger);
         }
     }
 
